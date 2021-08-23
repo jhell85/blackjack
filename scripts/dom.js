@@ -13,21 +13,28 @@ let handResults = document.getElementById("game-over");
 // dom updating functions
 
 // arg aces will either be the number of aces in the dealer's hand or the value of the player's hand with aces
-const displayCard = (card, handValue, aces, user = true) => {
+const displayCard = (card, handValue, aces, user = true, isHandDeal = false) => {
   const cardUI = document.createElement("span");
   cardUI.innerHTML = card;
   // if it's the down facing card put an Id of 'down-card' on the element
   if (card == `<span class="card back">*</span>`) {
     cardUI.setAttribute("id", "down-card");
   }
+  cardUI.classList.add("animated", "fadeInDownBig");
   if (user) {
+    console.log("user card hit");
     playerDiv.appendChild(cardUI);
-    // check to see if user has 21 if so disable hit button and run end game function
-    // and if it's 21 or busted only display that value
+    if (isHandDeal) {
+      return;
+    }
     if (handValue != aces && aces < 21) {
-      playerScoreDiv.innerText = `${handValue} or ${aces}`;
+      setTimeout(() => {
+        playerScoreDiv.innerText = `${handValue} or ${aces}`;
+      }, 600);
     } else {
-      playerScoreDiv.innerText = `${aces}`;
+      setTimeout(() => {
+        playerScoreDiv.innerText = `${aces}`;
+      }, 600);
     }
   } else {
     dealerScoreDiv.innerText = handValue;
@@ -50,10 +57,7 @@ const evaluateHandVsDealer = () => {
     handResults.innerHTML = resultAnimationSelector(`You Busted! 😞`);
     return;
   }
-  while (
-    dealerHandWithAces < 17 ||
-    (dealerHandWithAces == 17 && dealerHandWithAces != dealerTotal)
-  ) {
+  while (dealerHandWithAces < 17 || (dealerHandWithAces == 17 && dealerHandWithAces != dealerTotal)) {
     const card = dealCard(playDeck);
     dealerHand.push(card);
     dealerTotal = addHand(dealerHand);
@@ -74,10 +78,7 @@ const evaluateHandVsDealer = () => {
   } else if (handWithAces == 21) {
     handResults.innerHTML = `<div class="animated flip"><h1>21!</h1> \n 🎊  You Win!!! 🎉 <div>`;
   } else if (dealerHandWithAces > 21) {
-    handResults.innerHTML = resultAnimationSelector(
-      `Dealer busted 🥳  🎊 You Win!!! 🎉`,
-      true
-    );
+    handResults.innerHTML = resultAnimationSelector(`Dealer busted 🥳  🎊 You Win!!! 🎉`, true);
   } else if (dealerHandWithAces > handWithAces) {
     handResults.innerHTML = resultAnimationSelector(`dealer wins 😞 `);
   } else handResults.innerHTML = resultAnimationSelector(`🎊  You Win!!! 🎉`, true);
@@ -91,7 +92,9 @@ const hitBtnClicked = () => {
   const handWithAces = evaluateAces(userTotal, userAces);
   displayCard(UIDeck[card], userTotal, handWithAces);
   if (handWithAces >= 21) {
-    evaluateHandVsDealer();
+    setTimeout(() => {
+      evaluateHandVsDealer();
+    }, 700);
     toggleButtonDisplay(true);
   }
 };
@@ -107,18 +110,32 @@ const toggleButtonDisplay = (isShowingGameButtons = false) => {
   if (isShowingGameButtons) {
     hitBtn.removeEventListener("click", hitBtnClicked);
     stayBtn.removeEventListener("click", stayBtnClicked);
-    gameBtnDiv.classList.add("animated", "fadeOutUp");
+    playBtn.addEventListener("click", playBtnClicked);
     setTimeout(() => {
-      gameBtnDiv.classList.add("hidden");
-      playBtnDiv.classList.remove("hidden");
-      playBtnDiv.classList.add("animated", "fadeInDown");
-      gameBtnDiv.classList.remove("animated", "fadeOutUp");
-    }, 1000);
+      gameBtnDiv.classList.add("fadeOutUp");
+      setTimeout(() => {
+        gameBtnDiv.classList.add("hidden");
+        playBtnDiv.classList.remove("hidden");
+        playBtnDiv.classList.add("fadeInDown");
+        gameBtnDiv.classList.remove("fadeOutUp");
+        playBtnDiv.addEventListener("animationend", () => {
+          playerBtnDiv.classList.remove("fadeInDown"), gameBtnDiv.classList.remove("fadeOutUp");
+        });
+      }, 1000);
+    }, 600);
   } else {
+    playBtn.removeEventListener("click", playBtnClicked);
     hitBtn.addEventListener("click", hitBtnClicked);
     stayBtn.addEventListener("click", stayBtnClicked);
-    gameBtnDiv.classList.remove("hidden");
-    playBtnDiv.classList.add("hidden");
+    playBtnDiv.classList.add("fadeOutUp");
+    setTimeout(() => {
+      playBtnDiv.classList.add("hidden");
+      gameBtnDiv.classList.remove("hidden");
+      gameBtnDiv.classList.add("fadeInDown");
+      gameBtnDiv.addEventListener("animationend", () => {
+        gameBtnDiv.classList.remove("fadeInDown"), playBtnDiv.classList.remove("fadeOutUp");
+      });
+    }, 1500);
   }
 };
 
@@ -145,10 +162,17 @@ const playBtnClicked = () => {
   let dealerAces = countAces(dealerHand);
   let dealerHandWithAces = evaluateAces(dealerTotal, dealerAces);
   let dealerUpCardValue = cardDeck[dealerHand[1]];
+
   displayCard(UIDeck["Down"], dealerUpCardValue, dealerAces, false);
-  displayCard(UIDeck[dealerHand[1]], dealerUpCardValue, dealerAces, false);
-  displayCard(UIDeck[userHand[0]], userTotal, handWithAces);
-  displayCard(UIDeck[userHand[1]], userTotal, handWithAces);
+  setTimeout(() => {
+    displayCard(UIDeck[dealerHand[1]], dealerUpCardValue, dealerAces, false);
+  }, 300);
+  setTimeout(() => {
+    displayCard(UIDeck[userHand[0]], userTotal, handWithAces, true, true);
+  }, 600);
+  setTimeout(() => {
+    displayCard(UIDeck[userHand[1]], userTotal, handWithAces);
+  }, 900);
 
   console.log("handWithAces", handWithAces);
   console.log("dealerHandWithAces", dealerHandWithAces);
@@ -164,19 +188,9 @@ const resultAnimationSelector = (text, isWinner = false) => {
     // "hinge",
     "rotateInUpRight",
   ];
-  const winningClassArray = [
-    "heartBeat",
-    "backInDown",
-    "backInUp",
-    "fadeInDownBig",
-    "fadeInUpBig",
-    "flipInY",
-    "rotateIn",
-  ];
+  const winningClassArray = ["backInDown", "backInUp", "fadeInDownBig", "fadeInUpBig", "flipInY", "rotateIn"];
   const i = isWinner ? winningClassArray.length : loosingClassArray.length;
   const randIndex = Math.floor(Math.random() * i);
-  const animateClass = isWinner
-    ? winningClassArray[randIndex]
-    : loosingClassArray[randIndex];
+  const animateClass = isWinner ? winningClassArray[randIndex] : loosingClassArray[randIndex];
   return `<div class="animated ${animateClass}">${text}</div>`;
 };
