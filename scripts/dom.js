@@ -46,7 +46,7 @@ const displayCard = (card, handValue, aces, user = true, isHandDeal = false) => 
 };
 
 // event functions
-const evaluateHandVsDealer = () => {
+const evaluateHandVsDealer = async () => {
   const userTotal = addHand(userHand);
   const userAces = countAces(userHand);
   const handWithAces = evaluateAces(userTotal, userAces);
@@ -59,11 +59,7 @@ const evaluateHandVsDealer = () => {
     dealerDownCard.classList.remove("flipOutY"), (dealerDownCard.innerHTML = UIDeck[dealerHand[0]]);
     dealerDownCard.classList.add("flipInY");
   });
-  if (userTotal > 21) {
-    dealerScoreDiv.innerText = dealerHandWithAces;
-    handResults.innerHTML = resultAnimationSelector(`You Busted! 😞`);
-    return;
-  }
+
   while (dealerHandWithAces < 17 || (dealerHandWithAces == 17 && dealerHandWithAces != dealerTotal)) {
     const card = dealCard(playDeck);
     dealerHand.push(card);
@@ -80,7 +76,10 @@ const evaluateHandVsDealer = () => {
   }
   dealerScoreDiv.innerText = dealerHandWithAces;
   playerScoreDiv.innerText = handWithAces;
-  if (dealerHandWithAces == handWithAces) {
+  if (userTotal > 21) {
+    dealerScoreDiv.innerText = dealerHandWithAces;
+    handResults.innerHTML = resultAnimationSelector(`You Busted! 😞`);
+  } else if (dealerHandWithAces == handWithAces) {
     handResults.innerHTML = resultAnimationSelector(`Push 😒`);
   } else if (handWithAces == 21) {
     handResults.innerHTML = `<div class="animated flip"><h1>21!</h1> \n 🎊  You Win!!! 🎉 <div>`;
@@ -89,9 +88,23 @@ const evaluateHandVsDealer = () => {
   } else if (dealerHandWithAces > handWithAces) {
     handResults.innerHTML = resultAnimationSelector(`dealer wins 😞 `);
   } else handResults.innerHTML = resultAnimationSelector(`🎊  You Win!!! 🎉`, true);
+  return;
+};
+
+const disableBtns = () => {
+  hitBtn.removeEventListener("click", hitBtnClicked);
+  stayBtn.removeEventListener("click", stayBtnClicked);
+  playBtn.removeEventListener("click", playBtnClicked);
+};
+
+const enableBtns = () => {
+  hitBtn.addEventListener("click", hitBtnClicked);
+  stayBtn.addEventListener("click", stayBtnClicked);
+  playBtn.addEventListener("click", playBtnClicked);
 };
 
 const hitBtnClicked = () => {
+  disableBtns();
   const card = dealCard(playDeck);
   userHand.push(card);
   const userTotal = addHand(userHand);
@@ -99,55 +112,24 @@ const hitBtnClicked = () => {
   const handWithAces = evaluateAces(userTotal, userAces);
   displayCard(UIDeck[card], userTotal, handWithAces);
   if (handWithAces >= 21) {
-    setTimeout(() => {
-      evaluateHandVsDealer();
-    }, 700);
+    await evaluateHandVsDealer();
     toggleButtonDisplay(true);
   }
+  enableBtns();
 };
 hitBtn.addEventListener("click", hitBtnClicked);
 
 const stayBtnClicked = () => {
+  disableBtns();
+  await evaluateHandVsDealer();
   toggleButtonDisplay(true);
-  evaluateHandVsDealer();
+  enableBtns();
 };
 stayBtn.addEventListener("click", stayBtnClicked);
 
-const toggleButtonDisplay = (isShowingGameButtons = false) => {
-  if (isShowingGameButtons) {
-    hitBtn.removeEventListener("click", hitBtnClicked);
-    stayBtn.removeEventListener("click", stayBtnClicked);
-    playBtn.addEventListener("click", playBtnClicked);
-    setTimeout(() => {
-      gameBtnDiv.classList.add("fadeOutUp");
-      setTimeout(() => {
-        gameBtnDiv.classList.add("hidden");
-        playBtnDiv.classList.remove("hidden");
-        playBtnDiv.classList.add("fadeInDown");
-        gameBtnDiv.classList.remove("fadeOutUp");
-        playBtnDiv.addEventListener("animationend", () => {
-          playerBtnDiv.classList.remove("fadeInDown"), gameBtnDiv.classList.remove("fadeOutUp");
-        });
-      }, 1000);
-    }, 600);
-  } else {
-    playBtn.removeEventListener("click", playBtnClicked);
-    hitBtn.addEventListener("click", hitBtnClicked);
-    stayBtn.addEventListener("click", stayBtnClicked);
-    playBtnDiv.classList.add("fadeOutUp");
-    setTimeout(() => {
-      playBtnDiv.classList.add("hidden");
-      gameBtnDiv.classList.remove("hidden");
-      gameBtnDiv.classList.add("fadeInDown");
-      gameBtnDiv.addEventListener("animationend", () => {
-        gameBtnDiv.classList.remove("fadeInDown"), playBtnDiv.classList.remove("fadeOutUp");
-      });
-    }, 1500);
-  }
-};
-
 // Start game button
 const playBtnClicked = () => {
+  disableBtns();
   playDeck = populateDeck();
   userHand = Array();
   dealerHand = Array();
@@ -180,12 +162,40 @@ const playBtnClicked = () => {
   setTimeout(() => {
     displayCard(UIDeck[userHand[1]], userTotal, handWithAces);
   }, 900);
+  enableBtns();
 
   console.log("handWithAces", handWithAces);
   console.log("dealerHandWithAces", dealerHandWithAces);
   console.log("deck", playDeck);
 };
 playBtn.addEventListener("click", playBtnClicked);
+
+const toggleButtonDisplay = (isShowingGameButtons = false) => {
+  if (isShowingGameButtons) {
+    setTimeout(() => {
+      gameBtnDiv.classList.add("fadeOutUp");
+      setTimeout(() => {
+        gameBtnDiv.classList.add("hidden");
+        playBtnDiv.classList.remove("hidden");
+        playBtnDiv.classList.add("fadeInDown");
+        gameBtnDiv.classList.remove("fadeOutUp");
+        playBtnDiv.addEventListener("animationend", () => {
+          playerBtnDiv.classList.remove("fadeInDown"), gameBtnDiv.classList.remove("fadeOutUp");
+        });
+      }, 1000);
+    }, 600);
+  } else {
+    playBtn.removeEventListener("click", playBtnClicked);
+    hitBtn.addEventListener("click", hitBtnClicked);
+    stayBtn.addEventListener("click", stayBtnClicked);
+    playBtnDiv.classList.add("fadeOutUp");
+    setTimeout(() => {
+      gameBtnDiv.addEventListener("animationend", () => {
+        gameBtnDiv.classList.remove("fadeInDown"), playBtnDiv.classList.remove("fadeOutUp");
+      });
+    }, 1500);
+  }
+};
 
 const resultAnimationSelector = (text, isWinner = false) => {
   const loosingClassArray = [
