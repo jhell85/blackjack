@@ -25,7 +25,6 @@ const displayCard = (card, handValue, aces, user = true, isHandDeal = false) => 
     cardUI.classList.remove("fadeInDownBig");
   });
   if (user) {
-    console.log("user card hit");
     playerDiv.appendChild(cardUI);
     if (isHandDeal) {
       return;
@@ -126,7 +125,7 @@ const toggleButtonDisplay = (isShowingGameButtons = false) => {
         playBtnDiv.classList.add("fadeInDown");
         gameBtnDiv.classList.remove("fadeOutUp");
         playBtnDiv.addEventListener("animationend", () => {
-          playerBtnDiv.classList.remove("fadeInDown"), gameBtnDiv.classList.remove("fadeOutUp");
+          playBtnDiv.classList.remove("fadeInDown"), gameBtnDiv.classList.remove("fadeOutUp");
         });
       }, 1000);
     }, 600);
