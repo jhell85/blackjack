@@ -21,6 +21,9 @@ const displayCard = (card, handValue, aces, user = true, isHandDeal = false) => 
     cardUI.setAttribute("id", "down-card");
   }
   cardUI.classList.add("animated", "fadeInDownBig");
+  cardUI.addEventListener("animationend", () => {
+    cardUI.classList.remove("fadeInDownBig");
+  });
   if (user) {
     console.log("user card hit");
     playerDiv.appendChild(cardUI);
@@ -51,7 +54,11 @@ const evaluateHandVsDealer = () => {
   let dealerAces = countAces(dealerHand);
   let dealerHandWithAces = evaluateAces(dealerTotal, dealerAces);
   let dealerDownCard = document.getElementById("down-card");
-  dealerDownCard.innerHTML = UIDeck[dealerHand[0]];
+  dealerDownCard.classList.add("flipOutY");
+  dealerDownCard.addEventListener("animationend", () => {
+    dealerDownCard.classList.remove("flipOutY"), (dealerDownCard.innerHTML = UIDeck[dealerHand[0]]);
+    dealerDownCard.classList.add("flipInY");
+  });
   if (userTotal > 21) {
     dealerScoreDiv.innerText = dealerHandWithAces;
     handResults.innerHTML = resultAnimationSelector(`You Busted! 😞`);
