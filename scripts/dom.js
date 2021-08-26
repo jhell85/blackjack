@@ -190,6 +190,8 @@ const evaluateHandVsDealer = async () => {
 
 const hitBtnClicked = () => {
   disableBtns();
+  const downCard = document.getElementById("down-card");
+  console.log("in hitbtn", downCard);
   const card = dealCard(playDeck);
   userHand.push(card);
   const userTotal = addHand(userHand);
@@ -198,7 +200,10 @@ const hitBtnClicked = () => {
   let UICard = displayCard(UIDeck[card], userTotal, handWithAces);
   UICard.addEventListener("animationend", () => {
     if (handWithAces >= 21) {
-      hideGameButtons();
+      // the setTimeout is part of the animation bug fix
+      setTimeout(() => {
+        hideGameButtons();
+      });
       evaluateHandVsDealer();
     } else {
       enableBtns();
@@ -208,7 +213,9 @@ const hitBtnClicked = () => {
 hitBtn.addEventListener("click", hitBtnClicked);
 
 const stayBtnClicked = () => {
-  hideGameButtons();
+  setTimeout(() => {
+    hideGameButtons();
+  }, 1000);
   evaluateHandVsDealer();
 };
 stayBtn.addEventListener("click", stayBtnClicked);
@@ -258,8 +265,12 @@ const enableBtns = () => {
 const hideStartButton = () => {
   playBtnDiv.classList.add("fadeOutUp");
   playBtnDiv.addEventListener("animationend", () => {
-    playBtnDiv.classList.add("hidden");
-    playBtnDiv.classList.remove("fadeOutUp");
+    console.log("in hideStart Button handResults...", handResults);
+    const downCard = document.getElementById("down-card");
+    if (downCard.innerHTML == `<span class="card back">*</span>`) {
+      playBtnDiv.classList.add("hidden");
+      playBtnDiv.classList.remove("fadeOutUp");
+    }
   });
 };
 const showStartButton = () => {
@@ -272,8 +283,11 @@ const showStartButton = () => {
 const hideGameButtons = () => {
   gameBtnDiv.classList.add("fadeOutUp");
   gameBtnDiv.addEventListener("animationend", () => {
-    gameBtnDiv.classList.add("hidden");
-    gameBtnDiv.classList.remove("fadeOutUp");
+    const downCard = document.getElementById("down-card");
+    if (downCard.innerHTML != `<span class="card back">*</span>`) {
+      gameBtnDiv.classList.add("hidden");
+      gameBtnDiv.classList.remove("fadeOutUp");
+    }
   });
 };
 const showGameButtons = () => {
@@ -286,12 +300,14 @@ const showGameButtons = () => {
 
 // Start game button
 const playBtnClicked = () => {
+  console.log(handResults);
   disableBtns();
   hideStartButton();
   playDeck = populateDeck();
   userHand = Array();
   dealerHand = Array();
 
+  cardsPlayed = Array();
   playerDiv.innerHTML = "<span/>";
   playerScoreDiv.innerText = "0";
   dealerScoreDiv.innerText = "0";
@@ -314,6 +330,9 @@ const playBtnClicked = () => {
   let card = displayCard(UIDeck["Down"], 0, dealerAces, false);
   console.log(card);
   card.addEventListener("animationend", (e) => {
+    console.log(
+      "231423-1029580158018243815-7012348483-49-5404809093428208-5231=4208-3285-414235821348123-=850489-12348"
+    );
     if (e.type == "animationend") {
       let card2 = displayCard(UIDeck[dealerHand[1]], dealerUpCardValue, dealerAces, false);
       card2.addEventListener("animationend", (e) => {
@@ -334,6 +353,7 @@ const playBtnClicked = () => {
   });
 
   console.log("handWithAces", handWithAces);
+  console.log("playerhand");
   console.log("dealerHandWithAces", dealerHandWithAces);
   console.log("deck", playDeck);
 };
