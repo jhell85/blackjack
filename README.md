@@ -12,7 +12,7 @@ BlackJack game built in Vanilla Java Script
 
 ## Setup/Installation Requirements
 
-No server needed just clone this Repo and open the index.html your browser
+No server needed just clone this Repo and open the index.html in your browser
 
 ## Built With
 
