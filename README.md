@@ -8,7 +8,7 @@ Deployed @ [Github Pages](https://jhell85.github.io/blackjack/)
 
 ## Description
 
-BlackJack game built in Vanilla Java Script
+BlackJack game built in Vanilla JavaScript
 
 ## Setup/Installation Requirements
 
